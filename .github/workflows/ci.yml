@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [16, 18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: 冒烟测试
+        run: node test/smoke.js
+
+      - name: 生成 WAV 并校验数量
+        run: |
+          node bin/hebao-sfx.js build -o /tmp/sfx
+          count=$(ls /tmp/sfx/*.wav | wc -l)
+          echo "生成 $count 个文件"
+          test "$count" -eq 12
+          du -sh /tmp/sfx
+
+      - name: 校验确定性（同一版本两次渲染字节一致）
+        run: |
+          node bin/hebao-sfx.js build -o /tmp/a
+          node bin/hebao-sfx.js build -o /tmp/b
+          diff -r /tmp/a /tmp/b
