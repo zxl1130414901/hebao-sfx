@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>hebao-sfx · 表彰视频事件音效</title>
+<meta name="description" content="12 类表彰/贺报视频事件音效，纯代码合成，零依赖、零采样素材、无版权风险。" />
+<style>
+  :root {
+    --bg: #0d1014;
+    --panel: #14181f;
+    --panel-2: #191f28;
+    --line: #232b36;
+    --gold: #e0b75f;
+    --gold-soft: #f0d69a;
+    --text: #e9ecf1;
+    --muted: #7c8798;
+    --muted-2: #596374;
+    --ok: #7fc9a0;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --serif: ui-serif, "Songti SC", "Noto Serif SC", Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(900px 500px at 78% -8%, rgba(224, 183, 95, 0.10), transparent 70%),
+                      radial-gradient(700px 400px at 6% 4%, rgba(95, 140, 224, 0.07), transparent 70%);
+    background-repeat: no-repeat;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 28px 80px; }
+
+  /* ── 头部 ── */
+  header { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
+  .mark {
+    width: 46px; height: 46px; flex: 0 0 auto; border-radius: 12px;
+    background: linear-gradient(150deg, #2b2417, #161a20 65%);
+    border: 1px solid #3a3220;
+    display: grid; place-items: center; position: relative; overflow: hidden;
+  }
+  .mark::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(224,183,95,.35), transparent 60%);
+  }
+  .mark svg { position: relative; z-index: 1; }
+  .titles { flex: 1 1 320px; }
+  h1 {
+    font-family: var(--mono); font-size: 26px; letter-spacing: -0.02em;
+    margin: 0 0 6px; font-weight: 600;
+  }
+  h1 em { color: var(--gold); font-style: normal; }
+  .lead { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+  .chip {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+    color: var(--muted); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 11px; background: rgba(255,255,255,.015);
+  }
+  .chip b { color: var(--gold-soft); font-weight: 500; }
+
+  /* ── 时间轴 ── */
+  .tl {
+    margin-top: 44px; border: 1px solid var(--line); border-radius: 16px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    padding: 22px 24px 20px;
+  }
+  .tl-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .tl-head h2 { font-size: 14px; margin: 0; font-weight: 600; letter-spacing: .02em; }
+  .tl-head h2 span { color: var(--muted-2); font-weight: 400; margin-left: 8px; font-size: 12px; }
+  .btn {
+    font-family: var(--sans); font-size: 13px; cursor: pointer;
+    background: var(--gold); color: #1a1408; border: 0; border-radius: 999px;
+    padding: 9px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+    transition: transform .15s ease, box-shadow .2s ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(224,183,95,.22); }
+  .btn:active { transform: translateY(0); }
+  .btn[disabled] { opacity: .55; cursor: progress; }
+
+  .ruler { position: relative; height: 132px; margin: 20px 0 0; border-bottom: 1px solid var(--line); }
+  .grid-lines { position: absolute; inset: 0; display: flex; }
+  .grid-lines i { flex: 1; border-left: 1px dashed rgba(255,255,255,.045); }
+  .grid-lines i:first-child { border-left: 0; }
+  .grid-labels { position: absolute; left: 0; right: 0; bottom: -22px; display: flex; font-family: var(--mono); font-size: 10px; color: var(--muted-2); }
+  .grid-labels span { flex: 1; }
+
+  .cursor {
+    position: absolute; top: 0; bottom: 0; width: 1px; left: 0;
+    background: linear-gradient(180deg, transparent, var(--gold) 15%, var(--gold) 85%, transparent);
+    opacity: 0; transition: opacity .2s;
+  }
+  .cursor::after {
+    content: ""; position: absolute; top: -3px; left: -3px; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px rgba(224,183,95,.8);
+  }
+  .playing .cursor { opacity: 1; }
+
+  .blocks { position: absolute; inset: 0; }
+  .blk {
+    position: absolute; bottom: 0; border-radius: 3px 3px 0 0; cursor: pointer;
+    background: linear-gradient(180deg, rgba(224,183,95,.85), rgba(224,183,95,.18));
+    border: 1px solid rgba(224,183,95,.5); border-bottom: 0;
+    transition: filter .15s, transform .15s; transform-origin: bottom;
+    min-width: 3px;
+  }
+  .blk:hover { filter: brightness(1.45); transform: scaleY(1.06); }
+  .blk.lo { background: linear-gradient(180deg, rgba(124,135,152,.7), rgba(124,135,152,.12)); border-color: rgba(124,135,152,.4); }
+  .blk.mid { background: linear-gradient(180deg, rgba(240,214,154,.8), rgba(240,214,154,.15)); }
+  .blk .tip {
+    position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px);
+    background: #05070a; border: 1px solid var(--line); color: var(--text);
+    font-family: var(--mono); font-size: 10px; padding: 5px 8px; border-radius: 6px;
+    white-space: nowrap; opacity: 0; pointer-events: none; transition: .15s;
+  }
+  .blk:hover .tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .hint { margin: 34px 0 0; font-size: 12.5px; color: var(--muted-2); line-height: 1.7; }
+  .hint b { color: var(--gold-soft); font-weight: 500; }
+
+  /* ── 卡片 ── */
+  .sec-title {
+    margin: 52px 0 18px; font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted-2); font-family: var(--mono);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sec-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } .wrap { padding: 36px 18px 60px; } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    border: 1px solid var(--line); border-radius: 13px; background: var(--panel);
+    padding: 14px 15px 13px; position: relative; overflow: hidden;
+    transition: border-color .2s, background .2s, transform .2s;
+  }
+  .card:hover { border-color: #33404f; background: var(--panel-2); transform: translateY(-1px); }
+  .card.active { border-color: rgba(224,183,95,.55); background: linear-gradient(180deg, #1d1a12, var(--panel)); }
+  .card.active::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--gold);
+  }
+
+  .row { display: flex; align-items: center; gap: 11px; }
+  .pbtn {
+    width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; cursor: pointer;
+    border: 1px solid #3b4553; background: #0f1319; color: var(--gold);
+    display: grid; place-items: center; padding: 0; transition: .18s;
+  }
+  .pbtn:hover { border-color: var(--gold); background: rgba(224,183,95,.12); }
+  .pbtn svg { width: 12px; height: 12px; }
+  .name { flex: 1; min-width: 0; }
+  .name .cn { display: block; font-size: 13.5px; font-weight: 600; letter-spacing: .01em; }
+  .name .id { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--muted-2); margin-top: 2px; }
+  .dur { font-family: var(--mono); font-size: 10.5px; color: var(--muted-2); }
+
+  canvas { display: block; width: 100%; height: 44px; margin: 11px 0 9px; opacity: .9; }
+  .role { margin: 0; font-size: 11.5px; line-height: 1.6; color: var(--muted); min-height: 2.6em; }
+
+  footer {
+    margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted-2); line-height: 1.8;
+  }
+  footer code { font-family: var(--mono); color: var(--muted); background: #0f1319; padding: 2px 6px; border-radius: 4px; }
+  .banner {
+    margin-top: 24px; padding: 14px 16px; border-radius: 10px; font-size: 13px;
+    border: 1px solid #4a3a17; background: rgba(224,183,95,.07); color: var(--gold-soft);
+    display: none; line-height: 1.7;
+  }
+  .banner.show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e0b75f" stroke-width="1.6" stroke-linecap="round">
+        <path d="M3 12h2l2-6 2.5 12L12 6l2 9 2-3h3"/>
+      </svg>
+    </div>
+    <div class="titles">
+      <h1>hebao<em>-sfx</em></h1>
+      <p class="lead">12 类表彰视频事件音效 · 全部由代码合成 · 不读一个采样文件</p>
+    </div>
+    <div class="chips">
+      <span class="chip">v0.1.0</span>
+      <span class="chip"><b>44.1</b> kHz</span>
+      <span class="chip">16 bit</span>
+      <span class="chip">MIT</span>
+    </div>
+  </header>
+
+  <div class="banner" id="banner">
+    音频加载失败。用 <code>file://</code> 直接打开时浏览器会拦截音频读取 —— 请在项目目录执行
+    <code>npm run demo</code>，然后访问 <code>http://localhost:4173</code>。
+  </div>
+
+  <section class="tl" id="tl">
+    <div class="tl-head">
+      <h2>8 秒时间轴 <span>一条完整贺报的声音骨架</span></h2>
+      <button class="btn" id="playAll" disabled>
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l8 5-8 5z"/></svg>
+        播放整条
+      </button>
+    </div>
+    <div class="ruler" id="ruler">
+      <div class="grid-lines"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="blocks" id="blocks"></div>
+      <div class="cursor" id="cursor"></div>
+    </div>
+    <div class="grid-labels">
+      <span>0s</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8s</span>
+    </div>
+    <p class="hint">
+      点任意色块可单独试听。<b>stamp 是全片最响的一下，tick 最轻</b> —— 这组相对电平关系比单条音色更重要，
+      它决定了混在一起是"有层次"还是"一锅粥"。
+    </p>
+  </section>
+
+  <div class="sec-title">12 presets</div>
+  <section class="grid" id="grid"></section>
+
+  <footer>
+    <div>
+      无采样素材 · 无第三方音频 · 可商用<br />
+      生成：<code>npx hebao-sfx build</code>
+    </div>
+    <div style="text-align:right">
+      MIT License<br />
+      同样的输入永远产出同样的字节
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ── 12 条预设（与 src/presets.js 对应） ── */
+const PRESETS = [
+  { id: 'riser',     cn: '开场上扬', dur: 1.23, db: -16, role: '画面元素从下方升起 / 巨字即将落定' },
+  { id: 'stamp',     cn: '印章砸落', dur: 0.65, db: -12, role: '徽章/印章/名次牌砸定 —— 全片最核心的一下' },
+  { id: 'tick',      cn: '数字跳动', dur: 0.10, db: -22, role: '业绩数字滚动时每一次跳字' },
+  { id: 'coin',      cn: '金币计数', dur: 0.45, db: -18, role: '金额/件数累加的听觉符号' },
+  { id: 'applause',  cn: '掌声',     dur: 1.73, db: -19, role: '荣誉揭晓、定版后的人群反应' },
+  { id: 'firework',  cn: '礼花彩带', dur: 1.38, db: -14, role: '定版高潮、彩带炮炸开' },
+  { id: 'whoosh',    cn: '转场呼啸', dur: 0.45, db: -18, role: '幕与幕之间的"换口气"' },
+  { id: 'logosting', cn: '标识音',   dur: 1.33, db: -14, role: '片尾 0.9s，品牌落款' },
+  { id: 'brass',     cn: '颁奖铜管', dur: 0.98, db: -15, role: '职级晋升、荣誉揭晓' },
+  { id: 'pageflip',  cn: '翻页',     dur: 0.27, db: -21, role: '榜单/条目切换，两下比一下自然' },
+  { id: 'boom',      cn: '低频冲击', dur: 1.03, db: -13, role: '标题落定、幕切；只给 40–90Hz' },
+  { id: 'sparkle',   cn: '闪光颗粒', dur: 0.75, db: -20, role: '金色粒子飞散、数据点亮' },
+];
+
+/* ── 一条 8 秒默认排布：钩子 → 主体 → 论证 → 高潮 → 落定 ── */
+const TIMELINE = [
+  { t: 0.00, id: 'riser' },
+  { t: 1.10, id: 'stamp' },
+  { t: 1.60, id: 'tick' }, { t: 1.68, id: 'tick' }, { t: 1.76, id: 'tick' },
+  { t: 1.95, id: 'coin' },
+  { t: 2.60, id: 'pageflip' },
+  { t: 3.00, id: 'whoosh' },
+  { t: 3.20, id: 'brass' },
+  { t: 3.62, id: 'sparkle' },
+  { t: 4.20, id: 'boom' },
+  { t: 4.60, id: 'applause' },
+  { t: 5.30, id: 'whoosh' },
+  { t: 5.46, id: 'stamp' },
+  { t: 5.76, id: 'firework' },
+  { t: 6.60, id: 'logosting' },
+];
+const TOTAL = 8;
+
+const $ = (s) => document.querySelector(s);
+const byId = Object.fromEntries(PRESETS.map((p) => [p.id, p]));
+
+/* ── 渲染卡片 ── */
+const grid = $('#grid');
+grid.innerHTML = PRESETS.map((p) => `
+  <article class="card" data-id="${p.id}">
+    <div class="row">
+      <button class="pbtn" data-play="${p.id}" aria-label="播放 ${p.cn}">
+        <svg viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l8 5-8 5z"/></svg>
+      </button>
+      <div class="name"><span class="cn">${p.cn}</span><span class="id">${p.id}</span></div>
+      <span class="dur">${p.dur.toFixed(2)}s</span>
+    </div>
+    <canvas data-wave="${p.id}"></canvas>
+    <p class="role">${p.role}</p>
+  </article>
+`).join('');
+
+/* ── 渲染时间轴色块 ── */
+const blocks = $('#blocks');
+blocks.innerHTML = TIMELINE.map((e, i) => {
+  const p = byId[e.id];
+  const h = 18 + ((p.db + 23) / 11) * 100; // -23dB→18px, -12dB→118px
+  const cls = p.db <= -20 ? 'lo' : p.db <= -16 ? '' : 'mid';
+  return `<div class="blk ${cls}" data-t="${e.t}" data-id="${e.id}" data-i="${i}"
+    style="left:${(e.t / TOTAL) * 100}%;width:${Math.max(0.45, (p.dur / TOTAL) * 100)}%;height:${Math.min(118, h)}px">
+    <span class="tip">${p.cn} · ${e.t.toFixed(2)}s</span></div>`;
+}).join('');
+
+/* ── 音频 ── */
+const AC = window.AudioContext || window.webkitAudioContext;
+const ac = new AC();
+const cache = {};
+let current = null;   // 正在播放的单条 source
+let rafId = 0;
+
+async function load(id) {
+  if (cache[id]) return cache[id];
+  const res = await fetch('./sfx/' + id + '.wav');
+  if (!res.ok) throw new Error('missing ' + id);
+  cache[id] = await ac.decodeAudioData(await res.arrayBuffer());
+  return cache[id];
+}
+
+function stopCurrent() {
+  if (current) { try { current.stop(); } catch (e) {} current = null; }
+  document.querySelectorAll('.card.active').forEach((c) => c.classList.remove('active'));
+}
+
+function playOne(id) {
+  stopCurrent();
+  ac.resume().then(async () => {
+    const buf = await load(id);
+    const src = ac.createBufferSource();
+    src.buffer = buf;
+    src.connect(ac.destination);
+    src.start();
+    current = src;
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    if (card) card.classList.add('active');
+    src.onended = () => {
+      if (card) card.classList.remove('active');
+      if (current === src) current = null;
+    };
+  }).catch(reportLoadError);
+}
+
+/* 整条播放：所有事件按相对电平表以单位增益调度，混出来就是真实效果 */
+let playing = false;
+function playAll() {
+  if (playing) { stopAll(); return; }
+  Promise.all([...new Set(TIMELINE.map((e) => e.id))].map(load))
+    .then(() => ac.resume())
+    .then(() => {
+      stopAll(false);
+      playing = true;
+      const t0 = ac.currentTime + 0.08;
+      for (const e of TIMELINE) {
+        const src = ac.createBufferSource();
+        src.buffer = cache[e.id];
+        const g = ac.createGain();
+        g.gain.value = 1.0; // 相对电平已经烘进文件，不再二次调整
+        src.connect(g).connect(ac.destination);
+        src.start(t0 + e.t);
+      }
+      const btn = $('#playAll');
+      btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="1" width="3" height="10"/><rect x="7" y="1" width="3" height="10"/></svg> 停止';
+      $('#tl').classList.add('playing');
+      const tick = () => {
+        const el = ac.currentTime - t0;
+        if (el >= TOTAL) { stopAll(); return; }
+        $('#cursor').style.left = Math.max(0, Math.min(100, (el / TOTAL) * 100)) + '%';
+        rafId = requestAnimationFrame(tick);
+      };
+      rafId = requestAnimationFrame(tick);
+    })
+    .catch(reportLoadError);
+}
+
+function stopAll(resetBtn = true) {
+  playing = false;
+  cancelAnimationFrame(rafId);
+  $('#tl').classList.remove('playing');
+  $('#cursor').style.left = '0%';
+  if (resetBtn) {
+    $('#playAll').innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l8 5-8 5z"/></svg> 播放整条';
+  }
+}
+
+function reportLoadError(err) {
+  console.error(err);
+  $('#banner').classList.add('show');
+}
+
+/* ── 波形绘制 ── */
+function drawWave(canvas, buf) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 260;
+  const h = 44;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const data = buf.getChannelData(0);
+  const per = Math.floor(data.length / w) || 1;
+  const mid = h / 2;
+
+  ctx.strokeStyle = 'rgba(224,183,95,.12)';
+  ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(w, mid); ctx.stroke();
+
+  for (let x = 0; x < w; x++) {
+    let min = 1, max = -1;
+    for (let i = 0; i < per; i++) {
+      const v = data[x * per + i] || 0;
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    // 文件峰值只有 -12~-22dBFS，直接画会很小，视觉上放大 3.2 倍
+    const a = mid - max * mid * 3.2;
+    const b = mid - min * mid * 3.2;
+    ctx.strokeStyle = 'rgba(224,183,95,.72)';
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, Math.max(1, Math.min(h - 1, a)));
+    ctx.lineTo(x + 0.5, Math.max(1, Math.min(h - 1, b)));
+    ctx.stroke();
+  }
+}
+
+/* ── 事件绑定 ── */
+document.addEventListener('click', (e) => {
+  const cardBtn = e.target.closest('[data-play]');
+  if (cardBtn) { playOne(cardBtn.dataset.play); return; }
+  const blk = e.target.closest('.blk');
+  if (blk) {
+    playOne(blk.dataset.id);
+    const el = (parseFloat(blk.dataset.t) / TOTAL) * 100;
+    $('#cursor').style.left = el + '%';
+    $('#cursor').style.opacity = '1';
+    setTimeout(() => { if (!playing) $('#cursor').style.opacity = '0'; }, 400);
+  }
+});
+$('#playAll').addEventListener('click', playAll);
+
+/* ── 预加载并画波形 ── */
+Promise.all(PRESETS.map((p) => load(p.id).then((buf) => [p.id, buf])))
+  .then((pairs) => {
+    for (const [id, buf] of pairs) {
+      const c = document.querySelector(`canvas[data-wave="${id}"]`);
+      if (c) drawWave(c, buf);
+    }
+    $('#playAll').disabled = false;
+  })
+  .catch(reportLoadError);
+
+window.addEventListener('resize', () => {
+  for (const p of PRESETS) {
+    if (cache[p.id]) {
+      const c = document.querySelector(`canvas[data-wave="${p.id}"]`);
+      if (c) drawWave(c, cache[p.id]);
+    }
+  }
+});
+</script>
+</body>
+</html>

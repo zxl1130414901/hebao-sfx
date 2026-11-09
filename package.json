@@ -1,0 +1,44 @@
+{
+  "name": "hebao-sfx",
+  "version": "0.1.0",
+  "description": "12 类表彰/贺报视频事件音效，纯代码合成，零依赖、零采样素材、无版权风险",
+  "main": "src/index.js",
+  "bin": {
+    "hebao-sfx": "bin/hebao-sfx.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "sfx"
+  ],
+  "scripts": {
+    "build": "node bin/hebao-sfx.js build -o sfx",
+    "demo": "node bin/hebao-sfx.js build -o sfx && node scripts/serve.js",
+    "test": "node test/smoke.js",
+    "prepublishOnly": "node test/smoke.js"
+  },
+  "keywords": [
+    "sound-effects",
+    "sfx",
+    "audio",
+    "synthesis",
+    "procedural-audio",
+    "wav",
+    "remotion",
+    "video",
+    "award",
+    "chinese"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zxl1130414901/hebao-sfx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zxl1130414901/hebao-sfx/issues"
+  },
+  "homepage": "https://github.com/zxl1130414901/hebao-sfx#readme"
+}
